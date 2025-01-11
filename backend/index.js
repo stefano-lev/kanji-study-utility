@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
 
+// Import kanji routes
+const kanjiRoutes = require('./routes/kanji');
+
 // Initialize Express app
 const app = express();
 
@@ -11,7 +14,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Sample route
+// Routes
+app.use('/api/kanji', kanjiRoutes); // Connect kanji routes
+
+// Root route
 app.get('/', (req, res) => {
   res.send('Backend server is running!');
 });
