@@ -4,57 +4,43 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// Read kanji data
-const kanjiDataPath = path.join(__dirname, '../data/cleaned_kanjidic2.json');
+// Paths for the JLPT-level JSON files
+const jlptDataDirectory = path.join(__dirname, '../data/jlpt_levels');
 
-// API route to get kanji by JLPT level
+// Route to get kanji data for a specific JLPT level
 router.get('/:level', (req, res) => {
-  const level = req.params.level;
-
-  // Read the JSON data file
-  fs.readFile(kanjiDataPath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error reading data file' });
+    const level = req.params.level;
+  
+    // console.log(`Received request for JLPT level: ${level}`); // Log level received
+  
+    if (!['1', '2', '3', '4', '5'].includes(level)) {
+      console.warn(`Invalid JLPT level: ${level}`);
+      return res.status(400).json({ error: 'Invalid JLPT level' });
     }
-
-    let kanjiData = JSON.parse(data);
-
-    if (kanjiData && kanjiData.kanjidic2 && Array.isArray(kanjiData.kanjidic2.character)) {
-      // Filter the kanji characters based on the JLPT level
-      const filteredKanji = kanjiData.kanjidic2.character.filter((kanji) => {
-        if (kanji.misc && kanji.misc.jlpt) {
-          return kanji.misc.jlpt === level;
-        }
-        // Skip any kanji entries without a jlpt tag
-        return false;
-      });
-
-      // Simplify and sanitize the filtered kanji data
-      const sanitizedKanji = filteredKanji.map((kanji) => {
-        return {
-          literal: kanji.literal,
-          reading_meaning: {
-            meaning: kanji.reading_meaning.rmgroup?.meaning || []
-          },
-          misc: {
-            grade: kanji.misc.grade,
-            stroke_count: kanji.misc.stroke_count,
-            freq: kanji.misc.freq,
-            jlpt: kanji.misc.jlpt
-          }
-        };
-      });
-
-      if (sanitizedKanji.length > 0) {
-        // Send the sanitized kanji data as JSON
-        return res.json(sanitizedKanji);
-      } else {
-        return res.status(404).json({ error: `No kanji found for JLPT level ${level}` });
+  
+    const filePath = path.join(jlptDataDirectory, `jlpt_level_${level}.json`);
+    // console.log(`Looking for file: ${filePath}`); // Log file path being accessed
+  
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found: ${filePath}`);
+      return res.status(404).json({ error: 'Kanji data not found for this level' });
+    }
+  
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        console.error(`Error reading file for JLPT level ${level}:`, err);
+        return res.status(500).json({ error: 'Failed to load kanji data' });
       }
-    } else {
-      return res.status(500).json({ error: 'Data is not in the expected format' });
-    }
-  });
-});
+  
+      try {
+        const kanjiData = JSON.parse(data);
+        // console.log(`Successfully loaded data for JLPT level ${level}`);
+        res.json(kanjiData);
+      } catch (parseError) {
+        console.error('Error parsing kanji data:', parseError);
+        res.status(500).json({ error: 'Failed to parse kanji data' });
+      }
+    });
+  });  
 
 module.exports = router;
