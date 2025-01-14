@@ -5,6 +5,8 @@ const KanjiDictionary = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("0");
   const [sortFilter, setSortFilter] = useState("0");
+  const [selectedKanji, setSelectedKanji] = useState(null);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 
   const fetchKanjiData = async (level) => {
     console.log(`[INFO] Fetching kanji data for JLPT Level ${level}...`);
@@ -38,15 +40,26 @@ const KanjiDictionary = () => {
   useEffect(() => {
     const sortedData = [...kanjiData].sort((a, b) => {
       if (sortFilter === "1") {
-        return a.stroke_count - b.stroke_count; // Sort by stroke count
+        return a.misc.stroke_count - b.misc.stroke_count; // Sort by stroke count
       } else if (sortFilter === "2") {
-        return a.frequency - b.frequency; // Sort by frequency
+        return a.misc.freq - b.misc.freq; // Sort by frequency
       }
       return a.id - b.id; // Default sort by ID
     });
     setKanjiData(sortedData);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortFilter]);
+
+  const handleKanjiClick = (kanji) => {
+    setSelectedKanji(kanji);
+    setIsOverlayVisible(true);
+  };
+
+  const closeOverlay = () => {
+    setIsOverlayVisible(false);
+    setSelectedKanji(null);
+  };
 
   return (
     <div style={styles.container}>
@@ -85,23 +98,62 @@ const KanjiDictionary = () => {
           <p>Loading...</p>
         ) : (
           kanjiData.map((kanji, index) => (
-            <div key={index} style={styles.kanjiBlock}>
+            <button
+              key={index}
+              style={styles.kanjiButton}
+              onClick={() => handleKanjiClick(kanji)}
+            >
               {kanji.literal || "No Kanji"}
               <div style={styles.kanjiId}>#{kanji.id}</div>
-            </div>
+            </button>
           ))
         )}
       </div>
+
+      {isOverlayVisible && selectedKanji && (
+        <div
+          style={styles.overlay}
+          onClick={(e) => {
+            // Close overlay if backdrop is clicked
+            if (e.target === e.currentTarget) {
+              closeOverlay();
+            }
+          }}
+        >
+          <div style={styles.overlayContent}>
+            <h2>{selectedKanji.literal}</h2>
+            <p>ID: {selectedKanji.id}</p>
+            <p>Stroke Count: {selectedKanji.misc.stroke_count}</p>
+            <p>Frequency: {selectedKanji.misc.freq}</p>
+            <p>Kun Readings: {selectedKanji.reading_meaning.rmgroup.reading.filter(r => r["@r_type"] === "ja_kun")
+              .map(r => r["#text"]).join(", ") || "None"}</p>
+            <p>On Readings: {selectedKanji.reading_meaning.rmgroup.reading.filter(r => r["@r_type"] === "ja_on")
+              .map(r => r["#text"]).join(", ") || "None"}</p>
+            <p>Meanings: {selectedKanji.reading_meaning.rmgroup.meaning?.join(", ") || "None"}</p>
+            <button onClick={closeOverlay} style={styles.closeButton}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const styles = {
   container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Arial, sans-serif",
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '20px',
+    width: '100%',
+    maxWidth: '800px',
+    margin: '0 auto',
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    backgroundColor: '#f5f5f5',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   },
   heading: {
     fontSize: "2rem",
@@ -120,7 +172,7 @@ const styles = {
     width: "100%",
     maxWidth: "800px",
   },
-  kanjiBlock: {
+  kanjiButton: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -134,6 +186,8 @@ const styles = {
     textAlign: "center",
     height: "100px",
     width: "100px",
+    border: "none",
+    cursor: "pointer",
   },
   kanjiId: {
     position: "absolute",
@@ -141,6 +195,34 @@ const styles = {
     right: "12px",
     fontSize: "0.75rem",
     color: "#666",
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overlayContent: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+    textAlign: "center",
+    width: "300px",
+  },
+  closeButton: {
+    marginTop: "10px",
+    padding: "5px 10px",
+    backgroundColor: "#f00",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
   },
 };
 
