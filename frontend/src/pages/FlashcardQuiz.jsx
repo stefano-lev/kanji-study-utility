@@ -126,13 +126,14 @@ const styles = {
     margin: '0 auto',
     minHeight: '100vh',
     boxSizing: 'border-box',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2e2e2e', // Dark background
     borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    color: '#f4f4f4', // Light text for contrast
   },
   heading: {
-    fontSize: '2rem',
-    color: '#333',
+    fontSize: '2.5rem',
+    color: '#e0e0e0', // Lighter text color for heading
     textAlign: 'center',
     marginTop: '-10px',
     marginBottom: '20px',
@@ -142,24 +143,25 @@ const styles = {
     fontWeight: 'bold',
     marginBottom: '5px',
     display: 'block',
-    color: '#333',
-  },  
+    color: '#f4f4f4',
+  },
   cardSection: {
     width: '90%',
-    backgroundColor: '#f9f9f9',
-    padding: '10px',
+    backgroundColor: '#444444',
+    padding: '15px',
     borderRadius: '10px',
-    border: '1px solid #ddd',
+    border: '1px solid #555',
     marginBottom: '15px',
     textAlign: 'center',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  },  
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+  },
   select: {
     padding: '0.8rem',
     fontSize: '1rem',
     borderRadius: '5px',
-    border: '1px solid #ddd',
-    backgroundColor: '#fff',
+    border: '1px solid #555',
+    backgroundColor: '#333333',
+    color: '#f4f4f4',
     marginBottom: '20px',
   },
   kanjiCard: {
@@ -167,37 +169,30 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#2e2e2e',
     padding: '20px',
-    width: '500px', // Fixed width
-    height: '700px', // Fixed height
+    width: '500px',
+    height: '700px',
     borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
     marginBottom: '20px',
     textAlign: 'center',
-    overflowY: 'auto', // Enable scrolling for excess content
-  },  
-  kanjiReadingKun: {
-    fontSize: '1.2rem',
-    color: '#555',
-  },
-  kanjiReadingOn: {
-    fontSize: '1.2rem',
-    color: '#555',
+    overflowY: 'auto',
   },
   kanjiLiteral: {
     fontSize: '8rem',
     fontWeight: 'bold',
     marginTop: '-250px',
     marginBottom: '-250px',
+    color: '#f4f4f4',
   },
   meaningText: {
     fontSize: '1.2rem',
-    color: '#555',
+    color: '#e0e0e0',
   },
   button: {
-    padding: '10px 20px',
-    fontSize: '1rem',
+    padding: '12px 24px',
+    fontSize: '1.1rem',
     backgroundColor: '#007BFF',
     color: '#fff',
     border: 'none',
@@ -212,8 +207,9 @@ const styles = {
   progress: {
     marginTop: '5px',
     fontSize: '1.2rem',
-    color: '#333',
+    color: '#e0e0e0',
   },
 };
+
 
 export default FlashcardQuiz;

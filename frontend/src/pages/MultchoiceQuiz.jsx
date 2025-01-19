@@ -1,0 +1,247 @@
+import { useEffect, useState } from "react";
+
+const MultchoiceQuiz = () => {
+  const [kanjiData, setKanjiData] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState("5");
+  const [currentKanji, setCurrentKanji] = useState(null);
+  const [choices, setChoices] = useState([]);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [currentRound, setCurrentRound] = useState(0);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
+  const [percentageCorrect, setPercentageCorrect] = useState(0); // Moved to state
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+
+  useEffect(() => {
+    fetchKanjiData(selectedLevel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLevel]);
+
+  const fetchKanjiData = async (level) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/kanji/${level}`);
+      const data = await response.json();
+      setKanjiData(data);
+      if (data.length > 0) startQuiz(data);
+    } catch (error) {
+      console.error("Error fetching kanji data:", error);
+    }
+  };
+
+  const startQuiz = (data) => {
+    setCurrentRound(0);
+    setQuizCompleted(false);
+    setCorrectCount(0);
+    setIncorrectCount(0);
+    setPercentageCorrect(0); // Reset percentage
+    setCurrentKanji(data[0]);
+    generateChoices(data[0], data);
+  };
+
+  const generateChoices = (correctKanji, allKanji) => {
+    const randomChoices = allKanji
+      .filter((kanji) => kanji !== correctKanji)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 7); // Select 7 random incorrect choices
+    randomChoices.push(correctKanji); // Add the correct answer
+    randomChoices.sort(() => 0.5 - Math.random());
+    setChoices(randomChoices);
+  };
+
+  const handleAnswer = (selectedKanji) => {
+    if (isButtonDisabled) return; // Prevent multiple clicks
+    setIsButtonDisabled(true);
+
+    let correct = false;
+    if (selectedKanji === currentKanji) {
+      setIsCorrect(true);
+      setCorrectCount((prev) => prev + 1);
+      correct = true;
+    } else {
+      setIsCorrect(false);
+      setIncorrectCount((prev) => prev + 1);
+      reAddKanjiToPool(currentKanji);
+    }
+
+    const answeredRounds = currentRound + 1;
+    const newPercentageCorrect = Math.round(((correctCount + (correct ? 1 : 0)) / answeredRounds) * 100) || 0;
+    setPercentageCorrect(newPercentageCorrect); // Update percentage only after answering
+
+    setTimeout(() => {
+      nextRound();
+      setIsButtonDisabled(false);
+    }, 500); // 0.5-second cooldown
+  };
+
+  const reAddKanjiToPool = (kanji) => {
+    const randomIndex = Math.floor(Math.random() * kanjiData.length);
+    const updatedKanjiData = [...kanjiData];
+    updatedKanjiData.splice(randomIndex, 0, kanji);
+    setKanjiData(updatedKanjiData);
+  };
+
+  const nextRound = () => {
+    const nextRoundIndex = currentRound + 1;
+    if (nextRoundIndex < kanjiData.length) {
+      setCurrentRound(nextRoundIndex);
+      setCurrentKanji(kanjiData[nextRoundIndex]);
+      generateChoices(kanjiData[nextRoundIndex], kanjiData);
+      setIsCorrect(null);
+    } else {
+      setQuizCompleted(true);
+    }
+  };
+
+  const handleLevelChange = (e) => {
+    setSelectedLevel(e.target.value);
+  };
+
+  const totalRounds = kanjiData.length;
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.heading}>Multiple Choice Quiz</h1>
+      <div>
+        <label>Select JLPT Level:</label>
+        <select value={selectedLevel} onChange={handleLevelChange}>
+          <option value="5">JLPT N5</option>
+          <option value="4">JLPT N4</option>
+          <option value="3">JLPT N3</option>
+          <option value="2">JLPT N2</option>
+          <option value="1">JLPT N1</option>
+        </select>
+      </div>
+      <div style={styles.counter}>
+        <p>
+          Correct: {correctCount} | Incorrect: {incorrectCount} | Total Cards: {totalRounds}
+        </p>
+        <p>
+          Percentage Correct: {percentageCorrect}%
+        </p>
+      </div>
+      {quizCompleted ? (
+        <div>
+          <h2>Quiz Completed!</h2>
+          <p>You answered all the kanji for JLPT Level {selectedLevel}.</p>
+        </div>
+      ) : (
+        currentKanji && (
+          <div>
+            <h2 style={styles.round}>Round {currentRound + 1}</h2> {/* Centering fix */}
+            <p style={styles.text}>
+              Kun Readings:{" "}
+              {currentKanji.reading_meaning.rmgroup.reading
+                .filter((r) => r["@r_type"] === "ja_kun")
+                .map((r) => r["#text"])
+                .join(", ") || "None"}
+            </p>
+            <p style={styles.text}>
+              On Readings:{" "}
+              {currentKanji.reading_meaning.rmgroup.reading
+                .filter((r) => r["@r_type"] === "ja_on")
+                .map((r) => r["#text"])
+                .join(", ") || "None"}
+            </p>
+            <p style={styles.text}>
+              Meanings:{" "}
+              {currentKanji.reading_meaning.rmgroup.meaning?.join(", ") || "None"}
+            </p>
+            <div style={styles.choices}>
+              {choices.map((choice, index) => (
+                <button
+                  key={index}
+                  style={styles.button}
+                  onClick={() => handleAnswer(choice)}
+                  disabled={isButtonDisabled}
+                >
+                  {choice.literal}
+                </button>
+              ))}
+            </div>
+            {isCorrect !== null && (
+              <p style={{ color: isCorrect ? "green" : "red" }}>
+                {isCorrect ? "Correct!" : "Incorrect!"}
+              </p>
+            )}
+          </div>
+        )
+      )}
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    width: '100%',
+    maxWidth: '800px',
+    margin: '0 auto',
+    minHeight: '100vh',
+    backgroundColor: '#2e2e2e',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    color: '#f4f4f4',
+  },
+  heading: {
+    fontSize: '2.5rem',
+    color: '#e0e0e0',
+    textAlign: 'center',
+    marginTop: '-10px',
+    marginBottom: '20px',
+  },
+  counter: {
+    margin: '10px 0',
+    fontSize: '1.2rem',
+    textAlign: 'center',
+    color: '#e0e0e0',
+  },
+  round: {
+    fontSize: '1.5rem',
+    textAlign: 'center',
+    margin: '10px 0',
+    color: '#e0e0e0',
+  },
+  text: {
+    textAlign: 'center',
+    wordWrap: 'break-word',
+    color: '#e0e0e0',
+  },
+  choices: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: '20px',
+  },
+  button: {
+    margin: '10px',
+    padding: '12px 24px',
+    fontSize: '1.2rem',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  buttonHover: {
+    backgroundColor: '#0056b3',
+  },
+  isCorrect: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+  },
+  isCorrectGreen: {
+    color: 'green',
+  },
+  isCorrectRed: {
+    color: 'red',
+  },
+};
+
+
+export default MultchoiceQuiz;

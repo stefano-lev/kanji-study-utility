@@ -47,6 +47,14 @@ const NavBar = () => {
         Flashcard Quiz
       </NavLink>
       <NavLink
+        to="/multchoice-quiz"
+        style={({ isActive }) =>
+          isActive ? { ...styles.link, ...styles.activeLink } : styles.link
+        }
+      >
+        Multiple Choice Quiz
+      </NavLink>
+      <NavLink
         to="/kanji-dictionary"
         style={({ isActive }) =>
           isActive ? { ...styles.link, ...styles.activeLink } : styles.link
