@@ -10,13 +10,13 @@ A modern and interactive web application designed to help users study and master
 - **Stroke Order Quiz (Stretch Goal):** Practice drawing kanji with correct stroke order to reinforce muscle memory.
 
 ## Screenshots
-![Screenshot 1](images/screenshot1.jpg)
+![Screenshot 1](backend/images/screenshot1.jpg)
 *Demonstration of the basic flashcard functionality.*
 
-![Screenshot 2](images/screenshot2.jpg)
+![Screenshot 2](backend/images/screenshot2.jpg)
 *Fully-functional and customizable Kanji Dictionary resource.*
 
-![Screenshot 2](images/screenshot3.jpg)
+![Screenshot 2](backend/images/screenshot3.jpg)
 *Multiple Choice Kanji Quiz.*
 
 ## Technologies
