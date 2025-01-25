@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { setCookie, getCookie } from "../utils/storage";
 
 const FlashcardQuiz = () => {
   const [currentKanjiIndex, setCurrentKanjiIndex] = useState(0);
@@ -9,10 +8,6 @@ const FlashcardQuiz = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const savedProgress = getCookie("flashcard-progress");
-    if (savedProgress !== null) {
-      setCurrentKanjiIndex(parseInt(savedProgress, 10));
-    }
     fetchKanjiData(selectedLevel).catch((error) => console.error("Error in useEffect:", error));
   }, [selectedLevel]);
   
@@ -51,7 +46,6 @@ const FlashcardQuiz = () => {
     const nextIndex = (currentKanjiIndex + 1) % kanjiData.length;
     setCurrentKanjiIndex(nextIndex);
     setCurrentKanji(kanjiData[nextIndex]);
-    setCookie("flashcard-progress", nextIndex);
   };
 
   if (isLoading) {

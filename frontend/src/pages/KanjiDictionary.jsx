@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import * as storageHandler from "../utils/localStorageHandler";
+
 
 const KanjiDictionary = () => {
   const [kanjiData, setKanjiData] = useState([]);
@@ -8,8 +10,10 @@ const KanjiDictionary = () => {
   const [selectedKanji, setSelectedKanji] = useState(null);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [hoveredButton, setHoveredButton] = useState(null);
+  const [favorites, setFavorites] = useState([]);
+  const [filterFavorites, setFilterFavorites] = useState(false);
 
-  const fetchKanjiData = async (level) => {
+  const fetchKanjiData = async (level, filterFavorites) => {
     console.log(`[INFO] Fetching kanji data for JLPT Level ${level}...`);
     setIsLoading(true);
 
@@ -22,7 +26,12 @@ const KanjiDictionary = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setKanjiData(data);
+        if (filterFavorites === true) {
+          const filteredData = data.filter((kanji) => favorites.includes(kanji.id));
+          setKanjiData(filteredData);
+        } else {
+          setKanjiData(data);
+        }
       } else {
         alert("Failed to load kanji data.");
       }
@@ -35,8 +44,15 @@ const KanjiDictionary = () => {
   };
 
   useEffect(() => {
-    fetchKanjiData(selectedLevel);
-  }, [selectedLevel]);
+    fetchKanjiData(selectedLevel, filterFavorites);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLevel, filterFavorites]);
+
+  useEffect(() => {
+    const savedFavorites = storageHandler.getFavorites() || [];
+    setFavorites(savedFavorites);
+    console.log("Loaded Favorites: ", savedFavorites)
+  }, []);
 
   const handleKanjiClick = (kanji) => {
     setSelectedKanji(kanji);
@@ -48,6 +64,16 @@ const KanjiDictionary = () => {
     setSelectedKanji(null);
   };
 
+  const toggleFavorite = (kanji) => {
+    console.log("toggleFavorite", kanji.id)
+    const updatedFavorites = favorites.includes(kanji.id)
+      ? favorites.filter((id) => id !== kanji.id)
+      : [...favorites, kanji.id];
+    
+    setFavorites(updatedFavorites)
+    storageHandler.saveFavorites(updatedFavorites)
+  }
+
   const handleHover = (index) => {
     setHoveredButton(index);
   };
@@ -55,6 +81,10 @@ const KanjiDictionary = () => {
   const handleHoverOut = () => {
     setHoveredButton(null);
   };
+
+  const toggleFilterFavorites = () => {
+    setFilterFavorites((prev) => !prev);
+  }
 
   return (
     <div style={styles.container}>
@@ -86,6 +116,20 @@ const KanjiDictionary = () => {
           <option value="1">Stroke Count</option>
           <option value="2">Frequency</option>
         </select>
+
+        <label htmlFor="filter-sort">Favorites: </label>
+        <button
+          onClick={toggleFilterFavorites}
+          style={{
+            ...styles.favoritesButton,
+            ...(filterFavorites ? styles.favoritesButtonEnabled : {}),
+            ...(hoveredButton === "filterfavorites" ? styles.favoritesButtonHover : {}),
+          }}
+          onMouseEnter={() => setHoveredButton("filterfavorites")}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          {"★"}
+        </button>
       </div>
 
       <div style={styles.gridContainer}>
@@ -126,6 +170,16 @@ const KanjiDictionary = () => {
             <p>ID: {selectedKanji.id}</p>
             <p>Stroke Count: {selectedKanji.misc.stroke_count}</p>
             <p>Frequency: {selectedKanji.misc.freq}</p>
+            <p>Meanings: {selectedKanji.reading_meaning.rmgroup.meaning
+                  ?.join(", ") || "None"}</p>
+            <p>Kun-yomi: {selectedKanji.reading_meaning.rmgroup.reading
+                  .filter((r) => r["@r_type"] === "ja_kun")
+                  .map((r) => r["#text"])
+                  .join(", ") || "None"}</p>
+            <p>On-yomi: {selectedKanji.reading_meaning.rmgroup.reading
+                  .filter((r) => r["@r_type"] === "ja_on")
+                  .map((r) => r["#text"])
+                  .join(", ") || "None"}</p>
             <button
               onClick={closeOverlay}
               style={
@@ -137,6 +191,19 @@ const KanjiDictionary = () => {
               onMouseLeave={() => setHoveredButton(null)}
             >
               Close
+            </button>
+
+            <button
+              onClick={() => toggleFavorite(selectedKanji)}
+              style={{
+                ...styles.heartButton,
+                ...(favorites.includes(selectedKanji.id) ? styles.heartButtonFavorited : {}),
+                ...(hoveredButton === "heart" ? styles.heartButtonHover : {}),
+              }}
+              onMouseEnter={() => setHoveredButton("heart")}
+              onMouseLeave={() => setHoveredButton(null)}
+            >
+              {favorites.includes(selectedKanji.id) ? "❤️" : "🖤"}
             </button>
           </div>
         </div>
@@ -184,6 +251,16 @@ const styles = {
     maxWidth: "800px",
     backgroundColor: "#333",
   },
+  cardSection: {
+    width: 'auto',
+    backgroundColor: '#444444',
+    padding: '15px',
+    borderRadius: '10px',
+    border: '1px solid #555',
+    marginBottom: '15px',
+    textAlign: 'center',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+  },
   kanjiButton: {
     display: "flex",
     alignItems: "center",
@@ -206,6 +283,7 @@ const styles = {
   kanjiButtonHover: {
     backgroundColor: "#0056b3",
     color: "#fff",
+    transform: "scale(1.05)",
   },
   kanjiId: {
     position: "absolute",
@@ -246,6 +324,36 @@ const styles = {
   },
   closeButtonHover: {
     backgroundColor: "#c9302c",
+  },
+  heartButton: {
+    backgroundColor: "transparent",
+    border: "none",
+    fontSize: "1.5rem",
+    cursor: "pointer",
+    transition: "transform 0.2s ease, color 0.2s ease",
+    color: "#e0e0e0",
+  },
+  heartButtonHover: {
+    transform: "scale(1.1)",
+    color: "#ff6666",
+  },
+  heartButtonFavorited: {
+    color: "#ff4d4d",
+  },
+  favoritesButton: {
+    backgroundColor: "transparent",
+    border: "none",
+    fontSize: "1.5rem",
+    cursor: "pointer",
+    transition: "transform 0.2s ease, color 0.2s ease",
+    color: "#e0e0e0",
+  },
+  favoritesButtonHover: {
+    transform: "scale(1.4)",
+    color: "#0056b3",
+  },
+  favoritesButtonEnabled: {
+    color: "#0056b3",
   },
 };
 

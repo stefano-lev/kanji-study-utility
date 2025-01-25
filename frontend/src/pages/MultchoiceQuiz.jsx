@@ -130,24 +130,30 @@ const MultchoiceQuiz = () => {
         currentKanji && (
           <div>
             <h2 style={styles.round}>Round {currentRound + 1}</h2>
-            <p style={styles.text}>
-              Kun Readings:{" "}
-              {currentKanji.reading_meaning.rmgroup.reading
-                .filter((r) => r["@r_type"] === "ja_kun")
-                .map((r) => r["#text"])
-                .join(", ") || "None"}
-            </p>
-            <p style={styles.text}>
-              On Readings:{" "}
-              {currentKanji.reading_meaning.rmgroup.reading
-                .filter((r) => r["@r_type"] === "ja_on")
-                .map((r) => r["#text"])
-                .join(", ") || "None"}
-            </p>
-            <p style={styles.text}>
-              Meanings:{" "}
-              {currentKanji.reading_meaning.rmgroup.meaning?.join(", ") || "None"}
-            </p>
+            <div style={styles.cardSection}>
+              <p style={styles.text}>
+                Kun-yomi:{" "}
+                {currentKanji.reading_meaning.rmgroup.reading
+                  .filter((r) => r["@r_type"] === "ja_kun")
+                  .map((r) => r["#text"])
+                  .join(", ") || "None"}
+              </p>
+            </div>
+            <div style={styles.cardSection}>
+              <p style={styles.text}>
+                On-yomi:{" "}
+                {currentKanji.reading_meaning.rmgroup.reading
+                  .filter((r) => r["@r_type"] === "ja_on")
+                  .map((r) => r["#text"])
+                  .join(", ") || "None"}
+              </p>
+            </div>
+            <div style={styles.cardSection}>
+              <p style={styles.text}>
+                Meanings:{" "}
+                {currentKanji.reading_meaning.rmgroup.meaning?.join(", ") || "None"}
+              </p>
+            </div>
             <div style={styles.choices}>
               {choices.map((choice, index) => (
                 <button
@@ -198,6 +204,16 @@ const styles = {
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     color: '#f4f4f4',
+  },
+  cardSection: {
+    width: 'auto',
+    backgroundColor: '#444444',
+    padding: '15px',
+    borderRadius: '10px',
+    border: '1px solid #555',
+    marginBottom: '15px',
+    textAlign: 'center',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
   },
   heading: {
     fontSize: '2.5rem',
