@@ -26,13 +26,8 @@ _Multiple Choice Kanji Quiz._
 ![Screenshot 5](public/images/kanji-5.png)
 _Filtering Options._
 
-## Technologies
-
-This project is being built using:
-
-- **Frontend:** React
-- **Backend:** Node.js with Express
-- **Database:** MongoDB
+![Screenshot 6](public/images/kanji-6.png)
+_Stats Screen (WIP)._
 
 ## Project Goals
 

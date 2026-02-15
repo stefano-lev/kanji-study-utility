@@ -5,6 +5,8 @@ import * as storageHandler from '../utils/localStorageHandler';
 
 import { kanjiByLevel, allKanji } from '../data/kanjiData';
 
+import { recordSeen } from '../utils/statsHandler';
+
 const KanjiGrid = React.memo(function KanjiGrid({ kanjiData, onSelect }) {
   console.log('Grid rendered');
 
@@ -64,6 +66,7 @@ const KanjiDictionary = () => {
 
   const handleSelectKanji = useCallback((kanji) => {
     setSelectedKanji(kanji);
+    recordSeen(kanji.uid);
   }, []);
 
   return (

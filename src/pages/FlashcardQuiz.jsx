@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 
 import { kanjiByLevel } from '../data/kanjiData';
 
+import { recordSeen } from '../utils/statsHandler';
+
 const FlashcardQuiz = () => {
   const [currentKanjiIndex, setCurrentKanjiIndex] = useState(0);
   const [kanjiData, setKanjiData] = useState([]);
   const [currentKanji, setCurrentKanji] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState('5');
-  //const [isLoading, setIsLoading] = useState(false);
 
   const getKanjiByLevel = (level) => kanjiByLevel[level] || [];
 
@@ -22,13 +23,12 @@ const FlashcardQuiz = () => {
 
   const handleQuizProgress = () => {
     const nextIndex = (currentKanjiIndex + 1) % kanjiData.length;
+    if (currentKanji) {
+      recordSeen(currentKanji.uid);
+    }
     setCurrentKanjiIndex(nextIndex);
     setCurrentKanji(kanjiData[nextIndex]);
   };
-
-  //if (isLoading) {
-  //return <div>Loading kanji data...</div>;
-  //}
 
   return (
     <div className="min-h-screen flex justify-center items-center px-6 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-white">

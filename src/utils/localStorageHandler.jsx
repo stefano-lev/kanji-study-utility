@@ -1,32 +1,32 @@
-const LOCAL_STORAGE_KEY = 'kanjiStats';
 const FAVORITES_KEY = 'favorites';
+const STATS_KEY = 'kanjiStats';
 
-export const saveKanjiStats = (data) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+export const loadStats = () => {
+  const data = localStorage.getItem(STATS_KEY);
+  return data ? JSON.parse(data) : {};
 };
 
-export const getKanjiStats = () => {
-  const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-  return data ? JSON.parse(data) : null;
+export const saveStats = (stats) => {
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+};
+
+export const clearStats = () => {
+  localStorage.removeItem(STATS_KEY);
 };
 
 export const updateKanji = (kanjiId, updatedData) => {
-  const currentStats = getKanjiStats() || {};
+  const currentStats = loadStats() || {};
   currentStats[kanjiId] = {
     ...(currentStats[kanjiId] || {}),
     ...updatedData,
   };
-  saveKanjiStats(currentStats);
+  saveStats(currentStats);
 };
 
 export const initializeKanjiStats = (defaultData) => {
-  if (!getKanjiStats()) {
-    saveKanjiStats(defaultData);
+  if (!loadStats()) {
+    saveStats(defaultData);
   }
-};
-
-export const clearKanjiStats = () => {
-  localStorage.removeItem(LOCAL_STORAGE_KEY);
 };
 
 export const getFavorites = () => {

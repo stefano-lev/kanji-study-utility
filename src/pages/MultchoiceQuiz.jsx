@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { kanjiByLevel } from '../data/kanjiData';
 
+import { recordResult } from '../utils/statsHandler';
+
 const MultchoiceQuiz = () => {
   const [kanjiData, setKanjiData] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState('5');
@@ -69,15 +71,18 @@ const MultchoiceQuiz = () => {
     setIsButtonDisabled(true);
 
     let correct = false;
+
     if (choice === currentKanji) {
+      correct = true;
       setIsCorrect(true);
       setCorrectCount((c) => c + 1);
-      correct = true;
     } else {
       setIsCorrect(false);
       setIncorrectCount((c) => c + 1);
       reAddKanjiToPool(currentKanji);
     }
+
+    recordResult(currentKanji.uid, correct);
 
     const answered = currentRound + 1;
     setPercentageCorrect(
